@@ -7,8 +7,7 @@ class Lock : AdventOfCodeTask {
             val direction = instruction.first()
             val amount = instruction.drop(1).toInt()
             List(amount) { 0 }.runningFold(previous.last()) { current, _ ->
-                val next = if (direction == 'R') current + 1 else current - 1
-                if (next > 99) 0 else if (next < 0) 99 else next
+                (if (direction == 'R') current + 1 else current - 1) % 100
             }.drop(1)
         }.sumOf { sequence -> if (part2) sequence.count { it == 0 } else if (sequence.last() == 0) 1 else 0 }
     }
