@@ -4,7 +4,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 
-data class Coordinate(val x: Int, val y: Int) {
+data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
 
     fun distanceToCenter(): Int {
         return distanceTo(Coordinate(0, 0))
@@ -15,10 +15,7 @@ data class Coordinate(val x: Int, val y: Int) {
     }
 
     fun angleTo(other: Coordinate, inDegrees: Boolean = false): Double {
-        val radians = atan2(
-            (other.y - y).toDouble(),
-            (other.x - x).toDouble()
-        )
+        val radians = atan2((other.y - y).toDouble(), (other.x - x).toDouble())
 
         return if (inDegrees) (radians * 180 / PI + 90).let { if (it < 0) it + 360 else it } else radians
     }
@@ -52,12 +49,13 @@ data class Coordinate(val x: Int, val y: Int) {
         return Direction.values().associateWith { move(it, offset) }
     }
 
-    fun adjacentDiagonally() = setOf(
-        copy(x = x + 1, y = y + 1),
-        copy(x = x - 1, y = y - 1),
-        copy(x = x - 1, y = y + 1),
-        copy(x = x + 1, y = y - 1)
-    )
+    fun adjacentDiagonally() =
+        setOf(
+            copy(x = x + 1, y = y + 1),
+            copy(x = x - 1, y = y - 1),
+            copy(x = x - 1, y = y + 1),
+            copy(x = x + 1, y = y - 1),
+        )
 
     fun adjacent8() = adjacent().values.toSet() + adjacentDiagonally()
 
@@ -68,6 +66,8 @@ data class Coordinate(val x: Int, val y: Int) {
     operator fun minus(other: Coordinate): Coordinate {
         return Coordinate(x - other.x, y - other.y)
     }
+
+    override fun compareTo(other: Coordinate): Int = compareValuesBy(this, other, { it.x }, { it.y })
 }
 
 fun Map<Coordinate, *>.minX(): Int {
