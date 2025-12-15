@@ -1,4 +1,5 @@
 import kotlin.collections.flatMapIndexed
+import kotlin.collections.plus
 import utils.Coordinate
 import utils.readInputBlock
 
@@ -13,29 +14,38 @@ class Day12 : AdventOfCodeTask {
                 .associate { lines ->
                     val index = lines.first().substringBefore(':').toInt()
                     val shape =
-                        lines
-                            .drop(1)
-                            .flatMapIndexed { y, line -> line.mapIndexed { x, c -> Coordinate(x, y) to c } }
-                            .toMap()
-                    index to shape
+                        lines.drop(1).flatMapIndexed { y, line ->
+                            line.mapIndexedNotNull { x, c -> Coordinate(x, y).takeIf { c == '#' } }
+                        }
+                    index to shape.toSet()
                 }
-                .mapValues { (_, shape) -> TODO() }
+                .mapValues { (_, shape) -> generateVariants(shape) }
 
         data class Region(val width: Int, val height: Int, val requirements: List<IndexedValue<Int>>) {
-            val map: MutableMap<Coordinate, Char> =
-                (0 until height)
-                    .flatMap { y -> (0 until width).map { x -> Coordinate(x, y) to '.' } }
-                    .toMap()
-                    .toMutableMap()
+            fun isValid(): Boolean = true // TODO
         }
+
         val regions =
-            chunks.last().lines().map {
-                val (width, height) = it.substringBefore(": ").split('x').map(String::toInt)
-                val requirements = it.substringAfter(": ").split(' ').map(String::toInt).withIndex().toList()
+            chunks.last().lines().map { region ->
+                val (width, height) = region.substringBefore(": ").split('x').map(String::toInt)
+                val requirements = region.substringAfter(": ").split(' ').map(String::toInt).withIndex().toList()
                 Region(width, height, requirements)
             }
 
-        return regions
+        return regions.count(Region::isValid)
+    }
+
+    private fun Set<Coordinate>.rotate90(): Set<Coordinate> =
+        map { coordinate -> Coordinate(maxOf { it.y } - coordinate.y, coordinate.x) }.toSet()
+
+    private fun Set<Coordinate>.flipHorizontal(): Set<Coordinate> =
+        map { coordinate -> Coordinate(maxOf { it.x } - coordinate.x, coordinate.y) }.toSet()
+
+    private fun generateVariants(shape: Set<Coordinate>): Set<Set<Coordinate>> {
+        val rotations = generateSequence(shape) { it.rotate90() }.take(4).toSet()
+        val flippedRotations = generateSequence(shape.flipHorizontal()) { it.rotate90() }.take(4).toSet()
+
+        return (rotations + flippedRotations)
     }
 }
 
