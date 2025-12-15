@@ -48,6 +48,11 @@ class AdventOfCodeTasksTest {
         runTaskTest(Rectangles(), 4765757080L, 1498673376L)
     }
 
+    @Test
+    fun day10() {
+        runTaskTest(Switches(), 475, 18273)
+    }
+
     private fun runTaskTest(task: AdventOfCodeTask, part1Result: Any, part2Result: Any) {
         assertEquals(part1Result, task.run())
         assertEquals(part2Result, task.run(part2 = true))
