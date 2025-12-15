@@ -7,7 +7,7 @@ version = "1.0"
 repositories { mavenCentral() }
 
 dependencies {
-    implementation("com.google.ortools:ortools-java:9.14.6206")
+    implementation("org.ojalgo:ojalgo:56.1.1")
     testImplementation(kotlin("test"))
 }
 

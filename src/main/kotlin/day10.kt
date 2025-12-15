@@ -1,6 +1,6 @@
-import com.google.ortools.Loader
-import com.google.ortools.linearsolver.MPSolver
 import java.util.LinkedList
+import kotlin.math.roundToInt
+import org.ojalgo.optimisation.ExpressionsBasedModel
 import utils.readInputLines
 
 /** [https://adventofcode.com/2025/day/10] */
@@ -20,26 +20,24 @@ class Switches : AdventOfCodeTask {
                     switch.substringAfter('(').substringBefore(')').split(",").map { it.toInt() }.toSet()
                 }
             if (part2) {
-                Loader.loadNativeLibraries()
-                val solver = MPSolver.createSolver("CBC")
-                val variables = switches.indices.map { solver.makeIntVar(0.0, Double.POSITIVE_INFINITY, "$it") }
+                val model = ExpressionsBasedModel()
+                val variables =
+                    switches.indices.map {
+                        model.addVariable("$it").lower(0.0).upper(expected.max()).integer(true).weight(1.0)
+                    }
 
                 expected.forEachIndexed { index, value ->
-                    solver.makeConstraint(value.toDouble(), value.toDouble()).apply {
+                    model.addExpression("$index").level(value).apply {
                         switches
                             .withIndex()
                             .filter { (_, toggles) -> index in toggles }
-                            .forEach { (switchIndex, _) -> setCoefficient(variables[switchIndex], 1.0) }
+                            .forEach { (switchIndex, _) -> set(variables[switchIndex], 1.0) }
                     }
                 }
 
-                solver.objective().apply {
-                    variables.forEach { setCoefficient(it, 1.0) }
-                    setMinimization()
-                }
-                solver.solve()
+                model.minimise()
 
-                variables.sumOf { it.solutionValue() }.toInt()
+                variables.sumOf { it.value.toDouble().roundToInt() }
             } else {
                 val initial = MutableList(expected.size) { 0 }
                 val queue = LinkedList(switches.map { switch -> Triple(initial, switch, 1) })
@@ -57,6 +55,7 @@ class Switches : AdventOfCodeTask {
                     }
                     switches.map { switch -> Triple(next, switch, presses + 1) }.toCollection(queue)
                 }
+
                 error("No solution found")
             }
         }
